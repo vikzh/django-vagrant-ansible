@@ -1,0 +1,10 @@
+---
+- name: get info about OS
+  hosts: all
+  
+  tasks:
+    - name: run uname
+      shell: uname -a
+      register: uname
+
+    - debug: var=uname.stdout_lines
