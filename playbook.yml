@@ -2,9 +2,44 @@
 - name: get info about OS
   hosts: all
   
-  tasks:
-    - name: run uname
-      shell: uname -a
-      register: uname
+#  environment:
+#    PATH: /home/vagrant/.poetry/bin:{{ ansible_env.PATH }}
 
-    - debug: var=uname.stdout_lines
+  tasks:
+    - name: install python apt
+      apt:
+        name: python3-apt
+        state: present
+      become: true
+
+    - name: install python dependencies
+      apt:
+        name: python3-distutils
+        state: present
+      become: true
+
+    - name: install poetry
+      shell: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+
+    - name: install dependencies
+      shell: poetry install
+      args:
+        chdir: /vagrant
+        executable: /bin/bash
+
+    - name: configurate poetry
+      shell: poetry config virtualenvs.in-project false
+      args:
+        executable: /bin/bash
+
+    - name: make migrations
+      shell: poetry run python manage.py migrate
+      args:
+        chdir: /vagrant
+        executable: /bin/bash
+
+    - name: run server
+      shell: poetry run python manage.py runserver 0.0.0.0:8000
+      args:
+        chdir: /vagrant
+        executable: /bin/bash
